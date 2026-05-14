@@ -1,39 +1,39 @@
-# CRM API — Task Actions: Comments, History, Attachments, Checklists
+# CRM API — Действия над задачами: Комментарии, История, Вложения, Чеклисты
 
-**Base prefix:** `/api/v1/`
-**Authentication:** All endpoints require `Authorization: Bearer <token>`.
-**Trailing slashes:** Required on all paths.
+**Базовый префикс:** `/api/v1/`
+**Аутентификация:** Все эндпоинты требуют заголовок `Authorization: Bearer <token>`.
+**Завершающие слеши:** Обязательны на всех путях.
 
 ---
 
-## Comments
+## Комментарии
 
-Comments are threaded discussion entries on a task. All authenticated users of the company can view and post comments. Edit and delete permissions are role-gated: the author can always edit and delete their own comment; `company_admin` can delete any comment; `superadmin` can edit and delete any comment.
+Комментарии — это записи обсуждения, привязанные к задаче. Все аутентифицированные пользователи компании могут просматривать и оставлять комментарии. Права на редактирование и удаление зависят от роли: автор всегда может редактировать и удалять свой комментарий; `company_admin` может удалять любой комментарий; `superadmin` может редактировать и удалять любой комментарий.
 
 ---
 
 ### GET /crm/tasks/{taskId}/comments/
 
-List all comments for a task, in chronological order.
+Получить все комментарии задачи в хронологическом порядке.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `taskId` | `integer` | Task ID |
+| `taskId` | `integer` | ID задачи |
 
-**Response** `200 OK` — array or `{ results: CrmComment[] }`.
+**Ответ** `200 OK` — массив или `{ results: CrmComment[] }`.
 
 ```json
 [
   {
     "id": 101,
-    "text": "Reviewed the spec. Looks good.",
+    "text": "Проверил спецификацию. Всё в порядке.",
     "author": {
       "id": 9,
-      "full_name": "Asel Nurova",
+      "full_name": "Асель Нурова",
       "avatar": "https://storage.example.com/avatars/9.jpg"
     },
     "created_at": "2025-05-14T11:22:00Z"
@@ -41,141 +41,141 @@ List all comments for a task, in chronological order.
 ]
 ```
 
-| Field | Type | Notes |
+| Поле | Тип | Примечания |
 |---|---|---|
-| `id` | `integer` | Comment ID |
-| `text` | `string` | Comment body |
-| `author.id` | `integer` | User ID |
+| `id` | `integer` | ID комментария |
+| `text` | `string` | Текст комментария |
+| `author.id` | `integer` | ID пользователя |
 | `author.full_name` | `string` | |
-| `author.avatar` | `string \| null` | URL or null |
-| `created_at` | `string` | ISO 8601 datetime |
+| `author.avatar` | `string \| null` | URL или null |
+| `created_at` | `string` | Дата и время в формате ISO 8601 |
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Task not found. |
+| `404` | Задача не найдена. |
 
 ---
 
 ### POST /crm/tasks/{taskId}/comments/
 
-Add a new comment to a task.
+Добавить новый комментарий к задаче.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `text` | `string` | Yes | Non-blank |
+| `text` | `string` | Да | Не должно быть пустым |
 
 ```json
 {
-  "text": "Blocking on the backend endpoint — tracking in #42."
+  "text": "Ждём готовности бэкенд-эндпоинта — отслеживается в #42."
 }
 ```
 
-**Response** `201 Created` — the created `CrmComment` object.
+**Ответ** `201 Created` — созданный объект `CrmComment`.
 
-**Side effects:** The task's `comments_count` is incremented. Relevant in-app notifications may be emitted.
+**Побочные эффекты:** Счётчик `comments_count` задачи увеличивается. Могут быть отправлены соответствующие уведомления в приложении.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Blank `text`. |
-| `404` | Task not found. |
+| `400` | Пустое поле `text`. |
+| `404` | Задача не найдена. |
 
 ---
 
 ### PATCH /crm/tasks/{taskId}/comments/{commentId}/
 
-Edit the text of an existing comment.
+Изменить текст существующего комментария.
 
-**Roles:** Author of the comment; or `superadmin` for any comment.
+**Роли:** Автор комментария; или `superadmin` для любого комментария.
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `taskId` | `integer` | Task ID |
-| `commentId` | `integer` | Comment ID |
+| `taskId` | `integer` | ID задачи |
+| `commentId` | `integer` | ID комментария |
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `text` | `string` | Yes | Non-blank |
+| `text` | `string` | Да | Не должно быть пустым |
 
 ```json
 {
-  "text": "Updated: endpoint is now unblocked."
+  "text": "Обновлено: эндпоинт теперь разблокирован."
 }
 ```
 
-**Response** `200 OK` — updated `CrmComment` object.
+**Ответ** `200 OK` — обновлённый объект `CrmComment`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Blank `text`. |
-| `403` | Caller is not the author and not `superadmin`. |
-| `404` | Task or comment not found. |
+| `400` | Пустое поле `text`. |
+| `403` | Вызывающий не является автором и не `superadmin`. |
+| `404` | Задача или комментарий не найдены. |
 
 ---
 
 ### DELETE /crm/tasks/{taskId}/comments/{commentId}/
 
-Delete a comment.
+Удалить комментарий.
 
-**Role-based access:**
+**Доступ по ролям:**
 
-| Role | Permission |
+| Роль | Разрешение |
 |---|---|
-| `superadmin` | Can delete any comment |
-| `company_admin` | Can delete any comment within their company |
-| `employee` | Can only delete their own comment |
+| `superadmin` | Может удалять любой комментарий |
+| `company_admin` | Может удалять любой комментарий в своей компании |
+| `employee` | Может удалять только свои комментарии |
 
-**Response** `204 No Content`
+**Ответ** `204 No Content`
 
-**Side effects:** The task's `comments_count` is decremented.
+**Побочные эффекты:** Счётчик `comments_count` задачи уменьшается.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `403` | Caller does not have permission to delete this comment. |
-| `404` | Task or comment not found. |
+| `403` | У вызывающего нет прав на удаление этого комментария. |
+| `404` | Задача или комментарий не найдены. |
 
 ---
 
-## History
+## История
 
-The history log records all meaningful state changes to a task (creation, field updates, archive actions, label changes, column moves). Entries are immutable — they are never edited or deleted.
+Журнал истории фиксирует все значимые изменения состояния задачи (создание, обновление полей, архивирование, изменение меток, перемещение между колонками). Записи неизменяемы — они никогда не редактируются и не удаляются.
 
 ---
 
 ### GET /crm/tasks/{taskId}/history/
 
-List the change history for a task, with pagination. Entries are returned in reverse chronological order (newest first).
+Получить историю изменений задачи с пагинацией. Записи возвращаются в обратном хронологическом порядке (сначала новые).
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `taskId` | `integer` | Task ID |
+| `taskId` | `integer` | ID задачи |
 
-**Query Parameters**
+**Параметры запроса**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `page` | `integer` | Page number (1-based). The frontend starts at page 1 and appends subsequent pages as the user clicks "Load more". |
+| `page` | `integer` | Номер страницы (начиная с 1). Фронтенд начинает с первой страницы и дозагружает последующие при нажатии «Загрузить ещё». |
 
-**Response** `200 OK` — standard paginated envelope.
+**Ответ** `200 OK` — стандартная обёртка с пагинацией.
 
 ```json
 {
@@ -187,7 +187,7 @@ List the change history for a task, with pagination. Entries are returned in rev
       "id": 55,
       "user": {
         "id": 9,
-        "full_name": "Asel Nurova",
+        "full_name": "Асель Нурова",
         "avatar": null
       },
       "action": "updated",
@@ -200,7 +200,7 @@ List the change history for a task, with pagination. Entries are returned in rev
       "id": 50,
       "user": {
         "id": 9,
-        "full_name": "Asel Nurova",
+        "full_name": "Асель Нурова",
         "avatar": null
       },
       "action": "created",
@@ -213,62 +213,62 @@ List the change history for a task, with pagination. Entries are returned in rev
 }
 ```
 
-| Field | Type | Notes |
+| Поле | Тип | Примечания |
 |---|---|---|
-| `id` | `integer` | History entry ID |
-| `user.id` | `integer` | User who performed the action |
+| `id` | `integer` | ID записи истории |
+| `user.id` | `integer` | Пользователь, выполнивший действие |
 | `user.full_name` | `string` | |
 | `user.avatar` | `string \| null` | |
-| `action` | `string` | See action values table below |
-| `field_name` | `string \| null` | Set only when `action` is `"updated"` |
-| `old_value` | `string \| null` | String representation of the previous value |
-| `new_value` | `string \| null` | String representation of the new value |
-| `created_at` | `string` | ISO 8601 datetime |
+| `action` | `string` | См. таблицу значений действий ниже |
+| `field_name` | `string \| null` | Заполняется только при `action` равном `"updated"` |
+| `old_value` | `string \| null` | Строковое представление предыдущего значения |
+| `new_value` | `string \| null` | Строковое представление нового значения |
+| `created_at` | `string` | Дата и время в формате ISO 8601 |
 
-**Action Values**
+**Значения действий**
 
-| `action` | `field_name` | Description |
+| `action` | `field_name` | Описание |
 |---|---|---|
-| `"created"` | `null` | Task was created |
-| `"archived"` | `null` | Task was archived |
-| `"unarchived"` | `null` | Task was restored from archive |
-| `"moved"` | `null` | Task was moved (new_value contains destination description) |
-| `"label_added"` | `null` | A label was added; `new_value` is JSON `{"name":"...","color":"..."}` |
-| `"label_removed"` | `null` | A label was removed; `old_value` is JSON `{"name":"...","color":"..."}` |
-| `"updated"` | `"title"` | Task title changed |
-| `"updated"` | `"description"` | Description changed (no values shown in UI) |
-| `"updated"` | `"priority"` | Priority changed; values are one of `low / medium / high / critical` |
-| `"updated"` | `"deadline"` | Deadline changed; values are ISO date strings or `"null"` |
-| `"updated"` | `"assignee"` | Assignee changed; values are full names or `"null"` |
-| `"updated"` | `"column"` or `"column_id"` | Task moved between columns; values are column names |
+| `"created"` | `null` | Задача была создана |
+| `"archived"` | `null` | Задача была архивирована |
+| `"unarchived"` | `null` | Задача была восстановлена из архива |
+| `"moved"` | `null` | Задача была перемещена (в `new_value` содержится описание назначения) |
+| `"label_added"` | `null` | Метка была добавлена; `new_value` — JSON `{"name":"...","color":"..."}` |
+| `"label_removed"` | `null` | Метка была удалена; `old_value` — JSON `{"name":"...","color":"..."}` |
+| `"updated"` | `"title"` | Изменено название задачи |
+| `"updated"` | `"description"` | Изменено описание (значения в UI не отображаются) |
+| `"updated"` | `"priority"` | Изменён приоритет; значения: `low / medium / high / critical` |
+| `"updated"` | `"deadline"` | Изменён дедлайн; значения — строки в формате ISO-даты или `"null"` |
+| `"updated"` | `"assignee"` | Изменён исполнитель; значения — полные имена или `"null"` |
+| `"updated"` | `"column"` или `"column_id"` | Задача перемещена между колонками; значения — названия колонок |
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Task not found. |
+| `404` | Задача не найдена. |
 
 ---
 
-## Attachments
+## Вложения
 
-File attachments linked to a task. Upload uses `multipart/form-data`. Files are stored server-side and served via a signed URL.
+Файловые вложения, прикреплённые к задаче. Загрузка осуществляется через `multipart/form-data`. Файлы хранятся на сервере и предоставляются по подписанному URL.
 
 ---
 
 ### GET /crm/tasks/{taskId}/attachments/
 
-List all attachments for a task.
+Получить все вложения задачи.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `taskId` | `integer` | Task ID |
+| `taskId` | `integer` | ID задачи |
 
-**Response** `200 OK` — array or `{ results: CrmAttachment[] }`.
+**Ответ** `200 OK` — массив или `{ results: CrmAttachment[] }`.
 
 ```json
 [
@@ -280,7 +280,7 @@ List all attachments for a task.
     "url": "https://storage.example.com/attachments/31/spec_v2.pdf?token=...",
     "uploaded_by": {
       "id": 9,
-      "full_name": "Asel Nurova",
+      "full_name": "Асель Нурова",
       "avatar": null
     },
     "created_at": "2025-05-14T11:00:00Z"
@@ -288,113 +288,113 @@ List all attachments for a task.
 ]
 ```
 
-| Field | Type | Notes |
+| Поле | Тип | Примечания |
 |---|---|---|
-| `id` | `integer` | Attachment ID |
-| `filename` | `string` | Original file name |
-| `size` | `integer` | File size in bytes |
-| `mime_type` | `string` | MIME type (e.g. `"application/pdf"`, `"image/png"`) |
-| `url` | `string` | Download URL (may be a signed/temporary URL) |
+| `id` | `integer` | ID вложения |
+| `filename` | `string` | Исходное имя файла |
+| `size` | `integer` | Размер файла в байтах |
+| `mime_type` | `string` | MIME-тип (например, `"application/pdf"`, `"image/png"`) |
+| `url` | `string` | URL для скачивания (может быть подписанным или временным) |
 | `uploaded_by.id` | `integer` | |
 | `uploaded_by.full_name` | `string` | |
 | `uploaded_by.avatar` | `string \| null` | |
-| `created_at` | `string` | ISO 8601 datetime |
+| `created_at` | `string` | Дата и время в формате ISO 8601 |
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Task not found. |
+| `404` | Задача не найдена. |
 
 ---
 
 ### POST /crm/tasks/{taskId}/attachments/
 
-Upload a file and attach it to a task.
+Загрузить файл и прикрепить его к задаче.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
 **Content-Type:** `multipart/form-data`
 
-**Form Fields**
+**Поля формы**
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `file` | `File` | Yes | The file binary. Accepted types: `.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.png`, `.jpg`, `.jpeg`, `.gif`. |
+| `file` | `File` | Да | Бинарный файл. Допустимые типы: `.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.png`, `.jpg`, `.jpeg`, `.gif`. |
 
-**Response** `201 Created` — the created `CrmAttachment` object.
+**Ответ** `201 Created` — созданный объект `CrmAttachment`.
 
-**Side effects:** The task's `attachments_count` is incremented.
+**Побочные эффекты:** Счётчик `attachments_count` задачи увеличивается.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | File missing; file type not allowed; file too large. Response body: `{ "detail": "..." }` or field-level `{ "file": ["..."] }`. |
-| `404` | Task not found. |
+| `400` | Файл отсутствует; тип файла не разрешён; файл слишком большой. Тело ответа: `{ "detail": "..." }` или ошибки на уровне поля `{ "file": ["..."] }`. |
+| `404` | Задача не найдена. |
 
 ---
 
 ### DELETE /crm/tasks/{taskId}/attachments/{attachmentId}/
 
-Delete an attachment.
+Удалить вложение.
 
-**Role-based access:**
+**Доступ по ролям:**
 
-| Role | Permission |
+| Роль | Разрешение |
 |---|---|
-| `company_admin` | Can delete any attachment within their company |
-| `employee` | Can only delete attachments they uploaded |
-| `superadmin` | Can delete any attachment |
+| `company_admin` | Может удалять любое вложение в своей компании |
+| `employee` | Может удалять только вложения, которые сам загрузил |
+| `superadmin` | Может удалять любое вложение |
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `taskId` | `integer` | Task ID |
-| `attachmentId` | `integer` | Attachment ID |
+| `taskId` | `integer` | ID задачи |
+| `attachmentId` | `integer` | ID вложения |
 
-**Response** `204 No Content`
+**Ответ** `204 No Content`
 
-**Side effects:** The task's `attachments_count` is decremented. The file is deleted from storage.
+**Побочные эффекты:** Счётчик `attachments_count` задачи уменьшается. Файл удаляется из хранилища.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `403` | Caller does not have permission to delete this attachment. |
-| `404` | Task or attachment not found. |
+| `403` | У вызывающего нет прав на удаление этого вложения. |
+| `404` | Задача или вложение не найдены. |
 
 ---
 
-## Checklists
+## Чеклисты
 
-A task can have multiple named checklists. Each checklist contains an ordered list of items that can be individually checked off. Progress is tracked as `completed / total`.
+К задаче можно прикрепить несколько именованных чеклистов. Каждый чеклист содержит упорядоченный список пунктов, которые можно отмечать по отдельности. Прогресс отслеживается как `completed / total` (выполнено / всего).
 
 ---
 
 ### GET /crm/tasks/{taskId}/checklists/
 
-List all checklists for a task (including their items and progress).
+Получить все чеклисты задачи (включая их пункты и прогресс).
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `taskId` | `integer` | Task ID |
+| `taskId` | `integer` | ID задачи |
 
-**Response** `200 OK` — array of `CrmChecklist`.
+**Ответ** `200 OK` — массив объектов `CrmChecklist`.
 
 ```json
 [
   {
     "id": 5,
-    "title": "Acceptance criteria",
+    "title": "Критерии приёмки",
     "items": [
-      { "id": 11, "text": "JWT issued on success", "is_completed": true, "order": 1 },
-      { "id": 12, "text": "Refresh token rotated", "is_completed": false, "order": 2 }
+      { "id": 11, "text": "JWT выдаётся при успехе", "is_completed": true, "order": 1 },
+      { "id": 12, "text": "Refresh-токен ротируется", "is_completed": false, "order": 2 }
     ],
     "checklist_progress": {
       "total": 2,
@@ -404,247 +404,247 @@ List all checklists for a task (including their items and progress).
 ]
 ```
 
-| Field | Type | Notes |
+| Поле | Тип | Примечания |
 |---|---|---|
-| `id` | `integer` | Checklist ID |
-| `title` | `string` | Max 200 characters |
-| `items` | `CrmChecklistItem[]` | Ordered by `item.order` ascending |
-| `items[].id` | `integer` | Item ID |
-| `items[].text` | `string` | Max 500 characters |
+| `id` | `integer` | ID чеклиста |
+| `title` | `string` | Максимум 200 символов |
+| `items` | `CrmChecklistItem[]` | Упорядочены по `item.order` по возрастанию |
+| `items[].id` | `integer` | ID пункта |
+| `items[].text` | `string` | Максимум 500 символов |
 | `items[].is_completed` | `boolean` | |
-| `items[].order` | `integer` | 1-based |
-| `checklist_progress.total` | `integer` | Total item count |
-| `checklist_progress.completed` | `integer` | Count of items with `is_completed: true` |
+| `items[].order` | `integer` | Начиная с 1 |
+| `checklist_progress.total` | `integer` | Общее количество пунктов |
+| `checklist_progress.completed` | `integer` | Количество пунктов с `is_completed: true` |
 
-**Note:** Checklists are also embedded directly inside the `CrmTask` response under the `checklists` key, which avoids a separate round-trip when the full task is loaded.
+**Примечание:** Чеклисты также встроены напрямую в ответ `CrmTask` под ключом `checklists`, что позволяет избежать дополнительного запроса при загрузке полной задачи.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Task not found. |
+| `404` | Задача не найдена. |
 
 ---
 
 ### POST /crm/tasks/{taskId}/checklists/
 
-Create a new checklist on a task.
+Создать новый чеклист для задачи.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `title` | `string` | Yes | Max 200 characters |
+| `title` | `string` | Да | Максимум 200 символов |
 
 ```json
 {
-  "title": "Definition of Done"
+  "title": "Определение готовности"
 }
 ```
 
-**Response** `201 Created` — the created `CrmChecklist` object (with `items: []` and `checklist_progress: { total: 0, completed: 0 }`).
+**Ответ** `201 Created` — созданный объект `CrmChecklist` (с `items: []` и `checklist_progress: { total: 0, completed: 0 }`).
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Blank `title`. |
-| `404` | Task not found. |
+| `400` | Пустое поле `title`. |
+| `404` | Задача не найдена. |
 
 ---
 
 ### GET /crm/checklists/{checklistId}/
 
-Retrieve a single checklist by its own ID (not scoped by task).
+Получить один чеклист по его собственному ID (без привязки к задаче).
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `checklistId` | `integer` | Checklist ID |
+| `checklistId` | `integer` | ID чеклиста |
 
-**Response** `200 OK` — single `CrmChecklist` object.
+**Ответ** `200 OK` — единственный объект `CrmChecklist`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Checklist not found. |
+| `404` | Чеклист не найден. |
 
 ---
 
 ### PATCH /crm/checklists/{checklistId}/
 
-Update a checklist's title.
+Обновить заголовок чеклиста.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `title` | `string` | Yes | Max 200 characters |
+| `title` | `string` | Да | Максимум 200 символов |
 
 ```json
 {
-  "title": "Updated checklist name"
+  "title": "Обновлённое название чеклиста"
 }
 ```
 
-**Response** `200 OK` — updated `CrmChecklist` object.
+**Ответ** `200 OK` — обновлённый объект `CrmChecklist`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Blank `title`. |
-| `404` | Checklist not found. |
+| `400` | Пустое поле `title`. |
+| `404` | Чеклист не найден. |
 
 ---
 
 ### DELETE /crm/checklists/{checklistId}/
 
-Delete a checklist and all its items.
+Удалить чеклист вместе со всеми его пунктами.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Response** `204 No Content`
+**Ответ** `204 No Content`
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Checklist not found. |
+| `404` | Чеклист не найден. |
 
 ---
 
 ### GET /crm/checklists/{checklistId}/items/
 
-List all items in a checklist, ordered by `order` ascending.
+Получить все пункты чеклиста, упорядоченные по `order` по возрастанию.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Response** `200 OK` — array of `CrmChecklistItem`.
+**Ответ** `200 OK` — массив объектов `CrmChecklistItem`.
 
 ```json
 [
-  { "id": 11, "text": "JWT issued on success", "is_completed": true, "order": 1 },
-  { "id": 12, "text": "Refresh token rotated", "is_completed": false, "order": 2 }
+  { "id": 11, "text": "JWT выдаётся при успехе", "is_completed": true, "order": 1 },
+  { "id": 12, "text": "Refresh-токен ротируется", "is_completed": false, "order": 2 }
 ]
 ```
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Checklist not found. |
+| `404` | Чеклист не найден. |
 
 ---
 
 ### POST /crm/checklists/{checklistId}/items/
 
-Add an item to a checklist. The item is appended at the end.
+Добавить пункт в чеклист. Пункт добавляется в конец.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `text` | `string` | Yes | Max 500 characters |
+| `text` | `string` | Да | Максимум 500 символов |
 
 ```json
 {
-  "text": "Unit tests passing"
+  "text": "Юнит-тесты проходят"
 }
 ```
 
-**Response** `201 Created` — the created `CrmChecklistItem` object.
+**Ответ** `201 Created` — созданный объект `CrmChecklistItem`.
 
 ```json
 {
   "id": 13,
-  "text": "Unit tests passing",
+  "text": "Юнит-тесты проходят",
   "is_completed": false,
   "order": 3
 }
 ```
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Blank `text`. |
-| `404` | Checklist not found. |
+| `400` | Пустое поле `text`. |
+| `404` | Чеклист не найден. |
 
 ---
 
 ### PATCH /crm/items/{itemId}/
 
-Update a checklist item's text and/or completion status. Used for both inline text editing and checkbox toggling.
+Обновить текст пункта чеклиста и/или статус выполнения. Используется как для редактирования текста, так и для переключения чекбокса.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `itemId` | `integer` | Checklist item ID |
+| `itemId` | `integer` | ID пункта чеклиста |
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `text` | `string` | No | Max 500 characters |
-| `is_completed` | `boolean` | No | Toggle completion state |
+| `text` | `string` | Нет | Максимум 500 символов |
+| `is_completed` | `boolean` | Нет | Переключить статус выполнения |
 
-Toggle completion only:
+Только переключение статуса:
 ```json
 {
   "is_completed": true
 }
 ```
 
-Edit text only:
+Только редактирование текста:
 ```json
 {
-  "text": "Unit tests passing at 90%+ coverage"
+  "text": "Юнит-тесты проходят при покрытии 90%+"
 }
 ```
 
-**Response** `200 OK` — updated `CrmChecklistItem` object.
+**Ответ** `200 OK` — обновлённый объект `CrmChecklistItem`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Blank `text`. |
-| `404` | Item not found. |
+| `400` | Пустое поле `text`. |
+| `404` | Пункт не найден. |
 
 ---
 
 ### DELETE /crm/items/{itemId}/
 
-Delete a single checklist item.
+Удалить один пункт чеклиста.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `itemId` | `integer` | Checklist item ID |
+| `itemId` | `integer` | ID пункта чеклиста |
 
-**Response** `204 No Content`
+**Ответ** `204 No Content`
 
-**Side effects:** The parent checklist's `checklist_progress.total` is decremented; if the item was completed, `completed` is also decremented.
+**Побочные эффекты:** Значение `checklist_progress.total` родительского чеклиста уменьшается; если пункт был выполнен, значение `completed` также уменьшается.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Item not found. |
+| `404` | Пункт не найден. |

@@ -1,40 +1,40 @@
-# CRM API — Boards, Columns, and Labels
+# CRM API — Доски, Колонки и Метки
 
-**Base prefix:** `/api/v1/`
-**Authentication:** All endpoints require `Authorization: Bearer <token>` unless stated otherwise.
-**Trailing slashes:** Required on all paths (Django convention).
+**Базовый префикс:** `/api/v1/`
+**Аутентификация:** Все эндпоинты требуют заголовок `Authorization: Bearer <token>`, если не указано иное.
+**Завершающие слеши:** Обязательны на всех путях (соглашение Django).
 
 ---
 
-## Boards
+## Доски
 
-A board is the top-level container for a CRM workflow. Each board belongs to one company and holds an ordered set of columns and tasks. Boards can be soft-archived rather than deleted.
+Доска — это корневой контейнер CRM-рабочего процесса. Каждая доска принадлежит одной компании и содержит упорядоченный набор колонок и задач. Доски поддерживают мягкое архивирование вместо удаления.
 
 ---
 
 ### GET /crm/boards/
 
-List boards for the authenticated user's company.
+Получить список досок компании аутентифицированного пользователя.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Query Parameters**
+**Параметры запроса**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `include_archived` | `boolean` | When `true`, response includes both active and archived boards. Default: omit (active only). |
-| `company_id` | `integer` | Superadmin only. Filter boards by a specific company ID. |
+| `include_archived` | `boolean` | При значении `true` ответ включает как активные, так и архивные доски. По умолчанию: не передавать (только активные). |
+| `company_id` | `integer` | Только для `superadmin`. Фильтрация досок по ID конкретной компании. |
 
-**Response** `200 OK`
+**Ответ** `200 OK`
 
-Returns an array or paginated object. The frontend normalises both shapes:
+Возвращает массив или объект с пагинацией. Фронтенд нормализует оба формата:
 
 ```json
 [
   {
     "id": 1,
-    "name": "Product Development",
-    "description": "Main dev board",
+    "name": "Разработка продукта",
+    "description": "Основная доска разработки",
     "is_archived": false,
     "created_at": "2025-01-15T09:00:00Z",
     "updated_at": "2025-05-10T14:22:00Z",
@@ -43,45 +43,45 @@ Returns an array or paginated object. The frontend normalises both shapes:
 ]
 ```
 
-| Field | Type | Notes |
+| Поле | Тип | Примечания |
 |---|---|---|
-| `id` | `integer` | Board ID |
-| `name` | `string` | Max 100 characters |
-| `description` | `string \| null` | Optional, max 500 characters |
-| `is_archived` | `boolean` | `true` means the board is archived |
-| `created_at` | `string` | ISO 8601 datetime |
-| `updated_at` | `string` | ISO 8601 datetime |
-| `company` | `integer` | Company ID (foreign key) |
+| `id` | `integer` | ID доски |
+| `name` | `string` | Максимум 100 символов |
+| `description` | `string \| null` | Необязательное, максимум 500 символов |
+| `is_archived` | `boolean` | `true` означает, что доска архивирована |
+| `created_at` | `string` | Дата и время в формате ISO 8601 |
+| `updated_at` | `string` | Дата и время в формате ISO 8601 |
+| `company` | `integer` | ID компании (внешний ключ) |
 
 ---
 
 ### POST /crm/boards/
 
-Create a new board.
+Создать новую доску.
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `name` | `string` | Yes | Max 100 characters |
-| `description` | `string` | No | Max 500 characters |
+| `name` | `string` | Да | Максимум 100 символов |
+| `description` | `string` | Нет | Максимум 500 символов |
 
 ```json
 {
-  "name": "Q3 Sprint",
-  "description": "Third quarter sprint board"
+  "name": "Спринт Q3",
+  "description": "Доска спринта третьего квартала"
 }
 ```
 
-**Response** `201 Created` — returns the created `CrmBoard` object.
+**Ответ** `201 Created` — возвращает созданный объект `CrmBoard`.
 
 ```json
 {
   "id": 7,
-  "name": "Q3 Sprint",
-  "description": "Third quarter sprint board",
+  "name": "Спринт Q3",
+  "description": "Доска спринта третьего квартала",
   "is_archived": false,
   "created_at": "2025-05-14T10:00:00Z",
   "updated_at": "2025-05-14T10:00:00Z",
@@ -89,118 +89,118 @@ Create a new board.
 }
 ```
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | `name` missing or blank; board limit for the company's plan has been reached. Response body contains `detail` or `non_field_errors[0]` with a human-readable message. |
-| `403` | Caller is not `company_admin` or `superadmin`. |
+| `400` | Поле `name` отсутствует или пустое; достигнут лимит досок для тарифа компании. Тело ответа содержит `detail` или `non_field_errors[0]` с описанием ошибки. |
+| `403` | Вызывающий не является `company_admin` или `superadmin`. |
 
 ---
 
 ### GET /crm/boards/{id}/
 
-Retrieve a single board by ID.
+Получить одну доску по ID.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `id` | `integer` | Board ID |
+| `id` | `integer` | ID доски |
 
-**Response** `200 OK` — single `CrmBoard` object.
+**Ответ** `200 OK` — единственный объект `CrmBoard`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Board does not exist or belongs to a different company. |
+| `404` | Доска не существует или принадлежит другой компании. |
 
 ---
 
 ### PATCH /crm/boards/{id}/
 
-Update board fields. Partial updates accepted — send only the fields you want to change.
+Обновить поля доски. Принимаются частичные обновления — передавайте только те поля, которые необходимо изменить.
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `id` | `integer` | Board ID |
+| `id` | `integer` | ID доски |
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `name` | `string` | No | Max 100 characters |
-| `description` | `string \| null` | No | Pass `null` to clear |
+| `name` | `string` | Нет | Максимум 100 символов |
+| `description` | `string \| null` | Нет | Передайте `null` для очистки |
 
 ```json
 {
-  "name": "Q3 Sprint — Revised",
+  "name": "Спринт Q3 — Пересмотренный",
   "description": null
 }
 ```
 
-**Response** `200 OK` — updated `CrmBoard` object.
+**Ответ** `200 OK` — обновлённый объект `CrmBoard`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Validation failure (e.g. blank `name`). |
-| `403` | Insufficient role. |
-| `404` | Board not found. |
+| `400` | Ошибка валидации (например, пустое поле `name`). |
+| `403` | Недостаточно прав. |
+| `404` | Доска не найдена. |
 
 ---
 
 ### DELETE /crm/boards/{id}/
 
-Permanently delete a board and all its columns and tasks.
+Безвозвратно удалить доску вместе со всеми её колонками и задачами.
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `id` | `integer` | Board ID |
+| `id` | `integer` | ID доски |
 
-**Response** `204 No Content`
+**Ответ** `204 No Content`
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `403` | Insufficient role. |
-| `404` | Board not found. |
+| `403` | Недостаточно прав. |
+| `404` | Доска не найдена. |
 
 ---
 
 ### POST /crm/boards/{id}/archive/
 
-Archive a board. Archived boards are hidden from the default board list but remain accessible with `?include_archived=true`.
+Архивировать доску. Архивные доски скрыты из стандартного списка, но остаются доступны при передаче `?include_archived=true`.
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `id` | `integer` | Board ID |
+| `id` | `integer` | ID доски |
 
-**Request Body:** None (empty POST).
+**Тело запроса:** Отсутствует (пустой POST).
 
-**Response** `200 OK` — updated `CrmBoard` object with `"is_archived": true`.
+**Ответ** `200 OK` — обновлённый объект `CrmBoard` с `"is_archived": true`.
 
 ```json
 {
   "id": 7,
-  "name": "Q3 Sprint",
+  "name": "Спринт Q3",
   "is_archived": true,
   "updated_at": "2025-05-14T12:00:00Z",
   "company": 3,
@@ -209,73 +209,73 @@ Archive a board. Archived boards are hidden from the default board list but rema
 }
 ```
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `403` | Insufficient role. |
-| `404` | Board not found. |
+| `403` | Недостаточно прав. |
+| `404` | Доска не найдена. |
 
 ---
 
 ### POST /crm/boards/{id}/unarchive/
 
-Restore a board from archive.
+Восстановить доску из архива.
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `id` | `integer` | Board ID |
+| `id` | `integer` | ID доски |
 
-**Request Body:** None.
+**Тело запроса:** Отсутствует.
 
-**Response** `200 OK` — updated `CrmBoard` object with `"is_archived": false`.
+**Ответ** `200 OK` — обновлённый объект `CrmBoard` с `"is_archived": false`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Company's board limit would be exceeded by restoring this board. Response body: `{ "detail": "..." }` or `{ "non_field_errors": ["..."] }`. |
-| `403` | Insufficient role. |
-| `404` | Board not found. |
+| `400` | Восстановление этой доски превысит лимит досок компании по тарифу. Тело ответа: `{ "detail": "..." }` или `{ "non_field_errors": ["..."] }`. |
+| `403` | Недостаточно прав. |
+| `404` | Доска не найдена. |
 
 ---
 
-## Columns
+## Колонки
 
-Columns represent workflow stages within a board (e.g. "To Do", "In Progress", "Done"). Each column has an integer `order` (1-based, ascending left-to-right) and an optional WIP limit.
+Колонки представляют этапы рабочего процесса внутри доски (например, «К выполнению», «В работе», «Готово»). Каждая колонка имеет целочисленное поле `order` (начиная с 1, по возрастанию слева направо) и необязательный WIP-лимит (ограничение количества активных задач).
 
 ---
 
 ### GET /crm/boards/{boardId}/columns/
 
-List all columns for a board, ordered by `order` ascending.
+Получить все колонки доски, упорядоченные по `order` по возрастанию.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `boardId` | `integer` | Board ID |
+| `boardId` | `integer` | ID доски |
 
-**Response** `200 OK` — array or paginated object of `CrmColumn`.
+**Ответ** `200 OK` — массив или объект с пагинацией типа `CrmColumn`.
 
 ```json
 [
   {
     "id": 12,
-    "name": "To Do",
+    "name": "К выполнению",
     "order": 1,
     "board": 7,
     "wip_limit": null
   },
   {
     "id": 13,
-    "name": "In Progress",
+    "name": "В работе",
     "order": 2,
     "board": 7,
     "wip_limit": 3
@@ -283,127 +283,127 @@ List all columns for a board, ordered by `order` ascending.
 ]
 ```
 
-| Field | Type | Notes |
+| Поле | Тип | Примечания |
 |---|---|---|
-| `id` | `integer` | Column ID |
-| `name` | `string` | Max 100 characters |
-| `order` | `integer` | 1-based position within the board |
-| `board` | `integer` | Parent board ID |
-| `wip_limit` | `integer \| null` | Maximum active tasks allowed; `null` = unlimited |
+| `id` | `integer` | ID колонки |
+| `name` | `string` | Максимум 100 символов |
+| `order` | `integer` | Позиция внутри доски, начиная с 1 |
+| `board` | `integer` | ID родительской доски |
+| `wip_limit` | `integer \| null` | Максимальное количество активных задач; `null` — без ограничений |
 
 ---
 
 ### POST /crm/boards/{boardId}/columns/
 
-Create a new column on a board. The column is appended at the end (highest `order`).
+Создать новую колонку на доске. Колонка добавляется в конец (с наибольшим значением `order`).
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `name` | `string` | Yes | Max 100 characters |
-| `wip_limit` | `integer \| null` | No | Min 0; omit or `null` for no limit |
+| `name` | `string` | Да | Максимум 100 символов |
+| `wip_limit` | `integer \| null` | Нет | Минимум 0; не передавать или `null` для отсутствия ограничения |
 
 ```json
 {
-  "name": "Review",
+  "name": "Ревью",
   "wip_limit": 5
 }
 ```
 
-**Response** `201 Created` — the created `CrmColumn` object.
+**Ответ** `201 Created` — созданный объект `CrmColumn`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Blank `name`; `wip_limit` negative. |
-| `403` | Insufficient role. |
-| `404` | Board not found. |
+| `400` | Пустое поле `name`; отрицательное значение `wip_limit`. |
+| `403` | Недостаточно прав. |
+| `404` | Доска не найдена. |
 
 ---
 
 ### GET /crm/boards/{boardId}/columns/{columnId}/
 
-Retrieve a single column.
+Получить одну колонку.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Response** `200 OK` — single `CrmColumn` object.
+**Ответ** `200 OK` — единственный объект `CrmColumn`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Column not found or does not belong to the specified board. |
+| `404` | Колонка не найдена или не принадлежит указанной доске. |
 
 ---
 
 ### PATCH /crm/boards/{boardId}/columns/{columnId}/
 
-Update a column's name, WIP limit, or position.
+Обновить название, WIP-лимит или позицию колонки.
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `name` | `string` | No | Max 100 characters |
-| `wip_limit` | `integer \| null` | No | Must be `>= current task count` in the column; `null` to remove limit |
-| `position` | `integer` | No | 1-based desired position; backend reorders other columns accordingly |
+| `name` | `string` | Нет | Максимум 100 символов |
+| `wip_limit` | `integer \| null` | Нет | Должно быть `>= текущего количества задач` в колонке; `null` для снятия ограничения |
+| `position` | `integer` | Нет | Желаемая позиция, начиная с 1; бэкенд перенумерует остальные колонки соответственно |
 
 ```json
 {
-  "name": "In Review",
+  "name": "На проверке",
   "wip_limit": 4,
   "position": 3
 }
 ```
 
-**Response** `200 OK` — updated `CrmColumn` object.
+**Ответ** `200 OK` — обновлённый объект `CrmColumn`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | `wip_limit` is lower than the current task count in the column; blank `name`. |
-| `403` | Insufficient role. |
-| `404` | Column not found. |
+| `400` | `wip_limit` меньше текущего количества задач в колонке; пустое поле `name`. |
+| `403` | Недостаточно прав. |
+| `404` | Колонка не найдена. |
 
 ---
 
 ### DELETE /crm/boards/{boardId}/columns/{columnId}/
 
-Delete a column. The frontend does not delete columns that contain tasks — validate this before calling.
+Удалить колонку. Фронтенд не удаляет колонки, содержащие задачи — перед вызовом необходимо выполнить проверку.
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Response** `204 No Content`
+**Ответ** `204 No Content`
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Column still has tasks (backend enforced). |
-| `403` | Insufficient role. |
-| `404` | Column not found. |
+| `400` | Колонка содержит задачи (проверяется на стороне бэкенда). |
+| `403` | Недостаточно прав. |
+| `404` | Колонка не найдена. |
 
 ---
 
 ### POST /crm/boards/{boardId}/columns/reorder/
 
-Reorder all columns on a board in a single atomic operation. Called after a drag-and-drop interaction. The backend assigns `order` values based on the position of each ID in the provided array.
+Переупорядочить все колонки доски в рамках одной атомарной операции. Вызывается после завершения drag-and-drop взаимодействия. Бэкенд присваивает значения `order` на основе позиции каждого ID в переданном массиве.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `column_ids` | `integer[]` | Yes | Ordered array of all column IDs for this board. Position in the array (0-indexed) determines the new `order` (1-indexed). Must include every column on the board. |
+| `column_ids` | `integer[]` | Да | Упорядоченный массив всех ID колонок данной доски. Позиция в массиве (с 0) определяет новое значение `order` (с 1). Обязательно включать каждую колонку доски. |
 
 ```json
 {
@@ -411,120 +411,120 @@ Reorder all columns on a board in a single atomic operation. Called after a drag
 }
 ```
 
-**Response** `200 OK`
+**Ответ** `200 OK`
 
 ```json
 {}
 ```
 
-The frontend invalidates the `['crm', 'columns', boardId]` cache after success and restores the previous order on error.
+Фронтенд инвалидирует кеш `['crm', 'columns', boardId]` после успешного ответа и восстанавливает предыдущий порядок при ошибке.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Array is missing IDs or contains unknown IDs. |
-| `403` | Insufficient role. |
-| `404` | Board not found. |
+| `400` | В массиве отсутствуют ID или присутствуют неизвестные ID. |
+| `403` | Недостаточно прав. |
+| `404` | Доска не найдена. |
 
 ---
 
-## Labels
+## Метки
 
-Labels are color-coded tags scoped to the company. A task can carry multiple labels. Labels are managed separately from boards and reused across all boards within the same company.
+Метки — это цветные теги, привязанные к компании. К задаче можно добавить несколько меток. Метки управляются отдельно от досок и используются повторно на всех досках одной компании.
 
 ---
 
 ### GET /crm/labels/
 
-List all labels for the authenticated user's company.
+Получить все метки компании аутентифицированного пользователя.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Response** `200 OK` — array or paginated object of `CrmLabel`.
+**Ответ** `200 OK` — массив или объект с пагинацией типа `CrmLabel`.
 
 ```json
 [
   {
     "id": 1,
-    "name": "Bug",
+    "name": "Ошибка",
     "color": "#ef4444"
   },
   {
     "id": 2,
-    "name": "Feature",
+    "name": "Функция",
     "color": "#22c55e"
   }
 ]
 ```
 
-| Field | Type | Notes |
+| Поле | Тип | Примечания |
 |---|---|---|
-| `id` | `integer` | Label ID |
-| `name` | `string` | Max 50 characters |
-| `color` | `string` | Hex color string, e.g. `"#ef4444"` |
+| `id` | `integer` | ID метки |
+| `name` | `string` | Максимум 50 символов |
+| `color` | `string` | Строка с HEX-цветом, например `"#ef4444"` |
 
 ---
 
 ### POST /crm/labels/
 
-Create a new label.
+Создать новую метку.
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `name` | `string` | Yes | Max 50 characters |
-| `color` | `string` | Yes | Hex color string, e.g. `"#6366f1"` |
+| `name` | `string` | Да | Максимум 50 символов |
+| `color` | `string` | Да | Строка с HEX-цветом, например `"#6366f1"` |
 
 ```json
 {
-  "name": "Urgent",
+  "name": "Срочно",
   "color": "#f97316"
 }
 ```
 
-**Response** `201 Created` — the created `CrmLabel` object.
+**Ответ** `201 Created` — созданный объект `CrmLabel`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Blank `name`; malformed `color`. |
-| `403` | Insufficient role. |
+| `400` | Пустое поле `name`; некорректный формат `color`. |
+| `403` | Недостаточно прав. |
 
 ---
 
 ### GET /crm/labels/{id}/
 
-Retrieve a single label.
+Получить одну метку.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Response** `200 OK` — single `CrmLabel` object.
+**Ответ** `200 OK` — единственный объект `CrmLabel`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Label not found. |
+| `404` | Метка не найдена. |
 
 ---
 
 ### PATCH /crm/labels/{id}/
 
-Update a label's name or color.
+Обновить название или цвет метки.
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `name` | `string` | No | Max 50 characters |
-| `color` | `string` | No | Hex color string |
+| `name` | `string` | Нет | Максимум 50 символов |
+| `color` | `string` | Нет | Строка с HEX-цветом |
 
 ```json
 {
@@ -532,29 +532,29 @@ Update a label's name or color.
 }
 ```
 
-**Response** `200 OK` — updated `CrmLabel` object.
+**Ответ** `200 OK` — обновлённый объект `CrmLabel`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Validation failure. |
-| `403` | Insufficient role. |
-| `404` | Label not found. |
+| `400` | Ошибка валидации. |
+| `403` | Недостаточно прав. |
+| `404` | Метка не найдена. |
 
 ---
 
 ### DELETE /crm/labels/{id}/
 
-Delete a label. The label is removed from all tasks it was attached to.
+Удалить метку. Метка будет удалена из всех задач, к которым она была прикреплена.
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Response** `204 No Content`
+**Ответ** `204 No Content`
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `403` | Insufficient role. |
-| `404` | Label not found. |
+| `403` | Недостаточно прав. |
+| `404` | Метка не найдена. |

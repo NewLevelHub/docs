@@ -1,32 +1,32 @@
-# CRM API — Tasks
+# CRM API — Задачи
 
-**Base prefix:** `/api/v1/`
-**Authentication:** All endpoints require `Authorization: Bearer <token>`.
-**Trailing slashes:** Required on all paths.
-
----
-
-## Overview
-
-Tasks are the primary work items inside CRM boards. Each task belongs to exactly one board and one column. Tasks have a `position` (1-based order within a column), a priority level, an optional deadline, and an optional assignee. Tasks can be archived without deletion and carry labels, checklists, comments, and file attachments.
-
-There are two overlapping access patterns for tasks:
-
-- **Board-scoped** — `GET /crm/boards/{boardId}/tasks/` and `GET /crm/boards/{boardId}/tasks/{taskId}/` — used by the Kanban board view.
-- **Global** — `GET /crm/tasks/`, `GET /crm/tasks/{id}/`, `PATCH /crm/tasks/{id}/`, etc. — used by task detail pages and cross-board views.
-
-Both patterns return the same `CrmTask` shape.
+**Базовый префикс:** `/api/v1/`
+**Аутентификация:** Все эндпоинты требуют заголовок `Authorization: Bearer <token>`.
+**Завершающие слеши:** Обязательны на всех путях.
 
 ---
 
-## Shared Response Shape — CrmTask
+## Обзор
+
+Задачи — это основные рабочие элементы внутри CRM-досок. Каждая задача принадлежит ровно одной доске и одной колонке. Задачи имеют поле `position` (порядок внутри колонки, начиная с 1), уровень приоритета, необязательный дедлайн и необязательного исполнителя. Задачи можно архивировать без удаления; к ним можно прикреплять метки, чеклисты, комментарии и файлы.
+
+Существует два пересекающихся способа доступа к задачам:
+
+- **С привязкой к доске** — `GET /crm/boards/{boardId}/tasks/` и `GET /crm/boards/{boardId}/tasks/{taskId}/` — используется в представлении Kanban-доски.
+- **Глобальный** — `GET /crm/tasks/`, `GET /crm/tasks/{id}/`, `PATCH /crm/tasks/{id}/` и т.д. — используется на страницах детального просмотра задач и в межбордовых представлениях.
+
+Оба варианта возвращают одинаковую структуру `CrmTask`.
+
+---
+
+## Общая структура ответа — CrmTask
 
 ```json
 {
   "id": 42,
   "board": {
     "id": 7,
-    "name": "Q3 Sprint",
+    "name": "Спринт Q3",
     "description": null,
     "is_archived": false,
     "created_at": "2025-05-14T10:00:00Z",
@@ -34,20 +34,20 @@ Both patterns return the same `CrmTask` shape.
     "company": 3
   },
   "column_id": 13,
-  "title": "Implement login flow",
-  "description": "Cover OAuth 2.0 and email/password paths.",
+  "title": "Реализовать процесс входа",
+  "description": "Охватить пути OAuth 2.0 и email/пароль.",
   "priority": "high",
   "deadline": "2025-06-01",
   "assignee": {
     "id": 9,
-    "first_name": "Asel",
-    "last_name": "Nurova",
+    "first_name": "Асель",
+    "last_name": "Нурова",
     "avatar": "https://storage.example.com/avatars/9.jpg"
   },
   "label_ids": [1, 3],
   "labels": [
-    { "id": 1, "name": "Bug", "color": "#ef4444" },
-    { "id": 3, "name": "Backend", "color": "#6366f1" }
+    { "id": 1, "name": "Ошибка", "color": "#ef4444" },
+    { "id": 3, "name": "Бэкенд", "color": "#6366f1" }
   ],
   "comments_count": 4,
   "attachments_count": 2,
@@ -57,10 +57,10 @@ Both patterns return the same `CrmTask` shape.
   "checklists": [
     {
       "id": 5,
-      "title": "Acceptance criteria",
+      "title": "Критерии приёмки",
       "items": [
-        { "id": 11, "text": "JWT issued on success", "is_completed": true, "order": 1 },
-        { "id": 12, "text": "Refresh token rotated", "is_completed": false, "order": 2 }
+        { "id": 11, "text": "JWT выдаётся при успехе", "is_completed": true, "order": 1 },
+        { "id": 12, "text": "Refresh-токен ротируется", "is_completed": false, "order": 2 }
       ],
       "checklist_progress": { "total": 2, "completed": 1 }
     }
@@ -68,97 +68,97 @@ Both patterns return the same `CrmTask` shape.
 }
 ```
 
-| Field | Type | Notes |
+| Поле | Тип | Примечания |
 |---|---|---|
-| `id` | `integer` | Task ID |
-| `board` | `CrmBoard` | Full nested board object |
-| `column_id` | `integer` | Current column ID |
-| `title` | `string` | Max 255 characters |
-| `description` | `string \| null` | Free-text |
+| `id` | `integer` | ID задачи |
+| `board` | `CrmBoard` | Полный вложенный объект доски |
+| `column_id` | `integer` | ID текущей колонки |
+| `title` | `string` | Максимум 255 символов |
+| `description` | `string \| null` | Произвольный текст |
 | `priority` | `"low" \| "medium" \| "high" \| "critical"` | |
-| `deadline` | `string \| null` | ISO date `"YYYY-MM-DD"` |
+| `deadline` | `string \| null` | Дата в формате ISO `"YYYY-MM-DD"` |
 | `assignee` | `{ id, first_name, last_name, avatar? } \| null` | |
-| `label_ids` | `integer[]` | IDs of applied labels |
-| `labels` | `CrmLabel[]` | Full label objects |
-| `comments_count` | `integer` | Denormalized count |
-| `attachments_count` | `integer` | Denormalized count |
-| `position` | `integer` | 1-based order within the column |
+| `label_ids` | `integer[]` | ID применённых меток |
+| `labels` | `CrmLabel[]` | Полные объекты меток |
+| `comments_count` | `integer` | Денормализованный счётчик |
+| `attachments_count` | `integer` | Денормализованный счётчик |
+| `position` | `integer` | Порядок внутри колонки, начиная с 1 |
 | `is_archived` | `boolean` | |
-| `created_at` | `string` | ISO 8601 datetime |
-| `checklists` | `CrmChecklist[]` | Embedded; see `crm-task-actions.md` for full shape |
+| `created_at` | `string` | Дата и время в формате ISO 8601 |
+| `checklists` | `CrmChecklist[]` | Встроены в ответ; полная структура описана в `crm-task-actions.md` |
 
 ---
 
-## Endpoints
+## Эндпоинты
 
 ### GET /crm/boards/{boardId}/tasks/
 
-Retrieve all tasks belonging to a specific board, with optional filtering. Used by the Kanban board view.
+Получить все задачи конкретной доски с возможностью фильтрации. Используется в представлении Kanban-доски.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `boardId` | `integer \| string` | Board ID |
+| `boardId` | `integer \| string` | ID доски |
 
-**Query Parameters**
+**Параметры запроса**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `board_id` | `integer` | Redundant when using the board-scoped path; ignored if path `boardId` is present. |
-| `search` | `string` | Case-insensitive substring match on `title`. |
-| `priority` | `string` | One of `low`, `medium`, `high`, `critical`. |
-| `deadline` | `string` | One of `overdue`, `today`, `this_week`. |
-| `ordering` | `string` | Field to sort by. Prefix with `-` for descending (e.g. `-created_at`). |
-| `is_archived` | `boolean` | Pass `true` to return only archived tasks (used by the archive panel). |
-| `view` | `string` | `"list"` signals the backend that the request is for the flat list view; may affect serialization. |
+| `board_id` | `integer` | Избыточен при использовании пути с привязкой к доске; игнорируется, если указан `boardId` в пути. |
+| `search` | `string` | Поиск подстроки в `title` без учёта регистра. |
+| `priority` | `string` | Одно из значений: `low`, `medium`, `high`, `critical`. |
+| `deadline` | `string` | Одно из значений: `overdue`, `today`, `this_week`. |
+| `ordering` | `string` | Поле для сортировки. Префикс `-` для сортировки по убыванию (например, `-created_at`). |
+| `is_archived` | `boolean` | Передайте `true` для возврата только архивных задач (используется в панели архива). |
+| `view` | `string` | `"list"` — сигнализирует бэкенду, что запрос выполняется для плоского представления списка; может влиять на сериализацию. |
 
-**Response** `200 OK` — array or `{ results: CrmTask[], count?: number }`.
+**Ответ** `200 OK` — массив или `{ results: CrmTask[], count?: number }`.
 
-The frontend filters out `is_archived: true` tasks client-side for the Kanban view; both active and archived are returned when the query includes `is_archived=true`.
+Фронтенд фильтрует задачи с `is_archived: true` на стороне клиента для Kanban-представления; при наличии `is_archived=true` в запросе возвращаются и активные, и архивные задачи.
 
-**Note on pagination:** The board task list endpoint may or may not paginate. The frontend handles both a plain array and a `{ results }` envelope. For pagination on a specific board, use `GET /crm/tasks/` with `board_id` and `page`/`page_size` parameters.
+**Примечание о пагинации:** Эндпоинт задач доски может использовать пагинацию или нет. Фронтенд поддерживает как простой массив, так и объект-обёртку `{ results }`. Для пагинации задач конкретной доски используйте `GET /crm/tasks/` с параметрами `board_id` и `page`/`page_size`.
 
 ---
 
 ### GET /crm/boards/{boardId}/tasks/{taskId}/
 
-Retrieve a single task scoped to a board.
+Получить одну задачу с привязкой к доске.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Response** `200 OK` — single `CrmTask` object.
+**Ответ** `200 OK` — единственный объект `CrmTask`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Task not found or does not belong to the specified board. |
+| `404` | Задача не найдена или не принадлежит указанной доске. |
 
 ---
 
 ### GET /crm/tasks/
 
-Global task list. Supports the same filter parameters as the board-scoped endpoint plus explicit `board_id` and pagination parameters.
+Глобальный список задач. Поддерживает те же параметры фильтрации, что и эндпоинт с привязкой к доске, плюс явный `board_id` и параметры пагинации.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Query Parameters**
+**Параметры запроса**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `board_id` | `integer` | Filter by board. Required when fetching tasks for a specific board via this endpoint. |
-| `search` | `string` | Substring match on `title`. |
-| `priority` | `string` | One of `low`, `medium`, `high`, `critical`. |
-| `deadline` | `string` | One of `overdue`, `today`, `this_week`. |
-| `ordering` | `string` | Sort field; prefix with `-` for descending. |
-| `is_archived` | `boolean` | Include archived tasks only. |
-| `page` | `integer` | Page number (1-based). |
-| `page_size` | `integer` | Items per page. |
+| `board_id` | `integer` | Фильтр по доске. Обязателен при получении задач конкретной доски через этот эндпоинт. |
+| `search` | `string` | Поиск подстроки в `title`. |
+| `priority` | `string` | Одно из значений: `low`, `medium`, `high`, `critical`. |
+| `deadline` | `string` | Одно из значений: `overdue`, `today`, `this_week`. |
+| `ordering` | `string` | Поле для сортировки; префикс `-` для сортировки по убыванию. |
+| `is_archived` | `boolean` | Возвращать только архивные задачи. |
+| `page` | `integer` | Номер страницы (начиная с 1). |
+| `page_size` | `integer` | Количество элементов на странице. |
 
-**Response** `200 OK`
+**Ответ** `200 OK`
 
 ```json
 {
@@ -173,76 +173,76 @@ Global task list. Supports the same filter parameters as the board-scoped endpoi
 
 ### POST /crm/tasks/
 
-Create a new task.
+Создать новую задачу.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `board_id` | `integer` | Yes | Target board |
-| `column_id` | `integer` | Yes | Target column; task is appended at the end of the column |
-| `title` | `string` | Yes | Max 255 characters |
-| `priority` | `string` | Yes | One of `low`, `medium`, `high`, `critical` |
-| `description` | `string` | No | Free-text |
-| `deadline` | `string` | No | ISO date `"YYYY-MM-DD"` |
-| `assignee_id` | `integer` | No | User ID of the assignee |
+| `board_id` | `integer` | Да | Целевая доска |
+| `column_id` | `integer` | Да | Целевая колонка; задача добавляется в конец колонки |
+| `title` | `string` | Да | Максимум 255 символов |
+| `priority` | `string` | Да | Одно из значений: `low`, `medium`, `high`, `critical` |
+| `description` | `string` | Нет | Произвольный текст |
+| `deadline` | `string` | Нет | Дата в формате ISO `"YYYY-MM-DD"` |
+| `assignee_id` | `integer` | Нет | ID пользователя-исполнителя |
 
 ```json
 {
   "board_id": 7,
   "column_id": 12,
-  "title": "Write API documentation",
+  "title": "Написать API-документацию",
   "priority": "medium",
-  "description": "Cover all CRM endpoints.",
+  "description": "Охватить все CRM-эндпоинты.",
   "deadline": "2025-06-15",
   "assignee_id": 9
 }
 ```
 
-**Response** `201 Created` — the created `CrmTask` object.
+**Ответ** `201 Created` — созданный объект `CrmTask`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Missing required fields; WIP limit exceeded on the target column. Response body: `{ "detail": "..." }` (contains "wip" when WIP-blocked). |
-| `403` | Insufficient role. |
-| `404` | Board or column not found. |
+| `400` | Отсутствуют обязательные поля; превышен WIP-лимит в целевой колонке. Тело ответа: `{ "detail": "..." }` (содержит "wip" при блокировке WIP-лимитом). |
+| `403` | Недостаточно прав. |
+| `404` | Доска или колонка не найдена. |
 
 ---
 
 ### GET /crm/tasks/my/
 
-Return tasks assigned to the authenticated user, grouped by board. This endpoint does **not** return a flat paginated list — it returns a structured grouped response.
+Вернуть задачи, назначенные аутентифицированному пользователю, сгруппированные по доске. Этот эндпоинт **не** возвращает плоский список с пагинацией — он возвращает структурированный сгруппированный ответ.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Query Parameters**
+**Параметры запроса**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `search` | `string` | Substring match on task `title`. |
-| `priority` | `string` | One of `low`, `medium`, `high`, `critical`. |
-| `deadline` | `string` | One of `overdue`, `today`, `this_week`. |
-| `ordering` | `string` | Sort field (e.g. `-created_at`). Default: `-created_at`. |
+| `search` | `string` | Поиск подстроки в `title` задачи. |
+| `priority` | `string` | Одно из значений: `low`, `medium`, `high`, `critical`. |
+| `deadline` | `string` | Одно из значений: `overdue`, `today`, `this_week`. |
+| `ordering` | `string` | Поле для сортировки (например, `-created_at`). По умолчанию: `-created_at`. |
 
-**Response** `200 OK`
+**Ответ** `200 OK`
 
 ```json
 {
   "groups": [
     {
       "board_id": 7,
-      "board_name": "Q3 Sprint",
-      "tasks": [ /* CrmTask[] — initial page of tasks for this board */ ],
+      "board_name": "Спринт Q3",
+      "tasks": [ /* CrmTask[] — начальная страница задач этой доски */ ],
       "total": 12,
       "has_more": true
     },
     {
       "board_id": 9,
-      "board_name": "Support",
+      "board_name": "Поддержка",
       "tasks": [ /* CrmTask[] */ ],
       "total": 3,
       "has_more": false
@@ -251,63 +251,63 @@ Return tasks assigned to the authenticated user, grouped by board. This endpoint
 }
 ```
 
-| Field | Type | Notes |
+| Поле | Тип | Примечания |
 |---|---|---|
-| `groups` | `MyTaskGroup[]` | One entry per board that has assigned tasks |
+| `groups` | `MyTaskGroup[]` | Одна запись на каждую доску, в которой есть назначенные задачи |
 | `groups[].board_id` | `integer` | |
 | `groups[].board_name` | `string` | |
-| `groups[].tasks` | `CrmTask[]` | Initial batch of tasks for this board |
-| `groups[].total` | `integer` | Total assigned tasks on this board (across all pages) |
-| `groups[].has_more` | `boolean` | Whether additional tasks exist beyond the initial batch |
+| `groups[].tasks` | `CrmTask[]` | Начальная порция задач для данной доски |
+| `groups[].total` | `integer` | Общее количество назначенных задач на этой доске (по всем страницам) |
+| `groups[].has_more` | `boolean` | Существуют ли дополнительные задачи сверх начальной порции |
 
-**Loading more tasks for a group:** Use `GET /crm/tasks/?board_id={board_id}&page=2&page_size=50` — that standard paginated endpoint is used for "load more" per group.
+**Загрузка дополнительных задач группы:** Используйте `GET /crm/tasks/?board_id={board_id}&page=2&page_size=50` — этот стандартный эндпоинт с пагинацией используется для загрузки следующей страницы задач группы.
 
 ---
 
 ### GET /crm/tasks/{id}/
 
-Retrieve a single task by ID. Used by the standalone task detail page.
+Получить одну задачу по ID. Используется на отдельной странице детального просмотра задачи.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `id` | `integer` | Task ID |
+| `id` | `integer` | ID задачи |
 
-**Response** `200 OK` — single `CrmTask` object.
+**Ответ** `200 OK` — единственный объект `CrmTask`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Task not found. |
+| `404` | Задача не найдена. |
 
 ---
 
 ### PATCH /crm/tasks/{id}/
 
-Update one or more fields of an existing task. Only send fields you want to change.
+Обновить одно или несколько полей существующей задачи. Передавайте только те поля, которые необходимо изменить.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `id` | `integer` | Task ID |
+| `id` | `integer` | ID задачи |
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Notes |
+| Поле | Тип | Примечания |
 |---|---|---|
-| `title` | `string` | Max 255 characters |
-| `description` | `string \| null` | Pass `null` to clear |
-| `priority` | `string` | One of `low`, `medium`, `high`, `critical` |
-| `deadline` | `string \| null` | ISO date `"YYYY-MM-DD"`; pass `null` to clear |
-| `assignee_id` | `integer \| null` | User ID; pass `null` to unassign |
-| `label_ids` | `integer[]` | Complete replacement of the task's labels. Send the full desired set. |
+| `title` | `string` | Максимум 255 символов |
+| `description` | `string \| null` | Передайте `null` для очистки |
+| `priority` | `string` | Одно из значений: `low`, `medium`, `high`, `critical` |
+| `deadline` | `string \| null` | Дата в формате ISO `"YYYY-MM-DD"`; передайте `null` для очистки |
+| `assignee_id` | `integer \| null` | ID пользователя; передайте `null` для снятия назначения |
+| `label_ids` | `integer[]` | Полная замена меток задачи. Передайте полный желаемый набор. |
 
 ```json
 {
@@ -317,7 +317,7 @@ Update one or more fields of an existing task. Only send fields you want to chan
 }
 ```
 
-**Assigning labels:** Use `label_ids` — the backend replaces all current labels with the provided set.
+**Назначение меток:** Используйте поле `label_ids` — бэкенд заменяет все текущие метки переданным набором.
 
 ```json
 {
@@ -325,61 +325,61 @@ Update one or more fields of an existing task. Only send fields you want to chan
 }
 ```
 
-**Response** `200 OK` — updated `CrmTask` object.
+**Ответ** `200 OK` — обновлённый объект `CrmTask`.
 
-**Side effects:** A history entry is created for each changed field (`action: "updated"`, `field_name` identifies the field). Relevant notifications may be emitted.
+**Побочные эффекты:** Для каждого изменённого поля создаётся запись в истории (`action: "updated"`, `field_name` идентифицирует поле). Могут быть отправлены соответствующие уведомления.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | Validation failure (e.g. blank `title`, unknown `priority`). |
-| `403` | Insufficient role. |
-| `404` | Task not found. |
+| `400` | Ошибка валидации (например, пустое поле `title`, неизвестное значение `priority`). |
+| `403` | Недостаточно прав. |
+| `404` | Задача не найдена. |
 
 ---
 
 ### DELETE /crm/tasks/{id}/
 
-Permanently delete a task.
+Безвозвратно удалить задачу.
 
-**Roles:** `company_admin`, `superadmin`
+**Роли:** `company_admin`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `id` | `integer` | Task ID |
+| `id` | `integer` | ID задачи |
 
-**Response** `204 No Content`
+**Ответ** `204 No Content`
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `403` | Insufficient role. |
-| `404` | Task not found. |
+| `403` | Недостаточно прав. |
+| `404` | Задача не найдена. |
 
 ---
 
 ### POST /crm/tasks/{id}/move/
 
-Move a task to a different column and/or position within a column. This is the drag-and-drop persistence call — it is called once per completed drag, after the UI has already applied an optimistic update.
+Переместить задачу в другую колонку и/или на другую позицию внутри колонки. Это вызов для сохранения результата drag-and-drop — он выполняется один раз после завершения перетаскивания, когда UI уже применил оптимистичное обновление.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `id` | `integer` | Task ID |
+| `id` | `integer` | ID задачи |
 
-**Request Body** `application/json`
+**Тело запроса** `application/json`
 
-| Field | Type | Required | Notes |
+| Поле | Тип | Обязательно | Примечания |
 |---|---|---|---|
-| `column_id` | `integer` | Yes | Target column ID (may be the same column) |
-| `order` | `integer` | Yes | 1-based position within the target column after the move |
+| `column_id` | `integer` | Да | ID целевой колонки (может быть той же колонкой) |
+| `order` | `integer` | Да | Позиция внутри целевой колонки после перемещения, начиная с 1 |
 
 ```json
 {
@@ -388,69 +388,69 @@ Move a task to a different column and/or position within a column. This is the d
 }
 ```
 
-**Response** `200 OK` — updated `CrmTask` object, or `{}`.
+**Ответ** `200 OK` — обновлённый объект `CrmTask` или `{}`.
 
-**WIP limit:** If the target column has a WIP limit that would be exceeded by the move, the backend returns `400` with a `detail` or `non_field_errors` message containing "wip". The frontend detects this and rolls back the optimistic UI update.
+**WIP-лимит:** Если перемещение в целевую колонку приведёт к превышению WIP-лимита, бэкенд возвращает `400` с сообщением в `detail` или `non_field_errors`, содержащим "wip". Фронтенд обнаруживает это и откатывает оптимистичное обновление UI.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | WIP limit exceeded on target column. Response: `{ "detail": "..." }` or `{ "non_field_errors": ["..."] }`. |
-| `403` | Insufficient role. |
-| `404` | Task or column not found. |
+| `400` | Превышен WIP-лимит целевой колонки. Ответ: `{ "detail": "..." }` или `{ "non_field_errors": ["..."] }`. |
+| `403` | Недостаточно прав. |
+| `404` | Задача или колонка не найдена. |
 
 ---
 
 ### POST /crm/tasks/{id}/archive/
 
-Archive a task. Archived tasks are excluded from the Kanban board view but remain accessible via `?is_archived=true` and in the archive panel.
+Архивировать задачу. Архивные задачи исключены из Kanban-представления, но остаются доступны через `?is_archived=true` и в панели архива.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `id` | `integer` | Task ID |
+| `id` | `integer` | ID задачи |
 
-**Request Body:** None.
+**Тело запроса:** Отсутствует.
 
-**Response** `200 OK` — updated `CrmTask` object with `"is_archived": true`.
+**Ответ** `200 OK` — обновлённый объект `CrmTask` с `"is_archived": true`.
 
-**Side effects:** A history entry is created with `action: "archived"`.
+**Побочные эффекты:** Создаётся запись в истории с `action: "archived"`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `404` | Task not found. |
+| `404` | Задача не найдена. |
 
 ---
 
 ### POST /crm/tasks/{id}/unarchive/
 
-Restore a task from archive back to its original column.
+Восстановить задачу из архива в исходную колонку.
 
-**Roles:** `company_admin`, `employee`, `superadmin`
+**Роли:** `company_admin`, `employee`, `superadmin`
 
-**Path Parameters**
+**Параметры пути**
 
-| Parameter | Type | Description |
+| Параметр | Тип | Описание |
 |---|---|---|
-| `id` | `integer` | Task ID |
+| `id` | `integer` | ID задачи |
 
-**Request Body:** None.
+**Тело запроса:** Отсутствует.
 
-**Response** `200 OK` — updated `CrmTask` object with `"is_archived": false`.
+**Ответ** `200 OK` — обновлённый объект `CrmTask` с `"is_archived": false`.
 
-**WIP limit:** If the column the task was originally in now has a full WIP limit, the backend should return `400`. The frontend checks the WIP limit client-side before calling this endpoint and blocks the action with a toast message.
+**WIP-лимит:** Если колонка, в которой изначально находилась задача, теперь заполнена по WIP-лимиту, бэкенд должен вернуть `400`. Фронтенд проверяет WIP-лимит на стороне клиента перед вызовом этого эндпоинта и блокирует действие с уведомлением.
 
-**Side effects:** A history entry is created with `action: "unarchived"`.
+**Побочные эффекты:** Создаётся запись в истории с `action: "unarchived"`.
 
-**Error Codes**
+**Коды ошибок**
 
-| Code | Condition |
+| Код | Условие |
 |---|---|
-| `400` | WIP limit exceeded on the original column. |
-| `404` | Task not found. |
+| `400` | Превышен WIP-лимит исходной колонки. |
+| `404` | Задача не найдена. |
